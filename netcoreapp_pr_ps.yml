@@ -3,7 +3,6 @@ parameters:
   testFolder: 'tests'
   
 steps:
-- template: templates/npm-steps.yml
 - powershell: |
    Get-ChildItem Env:
    dotnet --info
