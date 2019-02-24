@@ -1,0 +1,39 @@
+parameters:
+  srcFolder: 'src'  # defaults for any parameters that aren't specified
+  testFolder: 'tests'
+  
+steps:
+- template: templates/npm-steps.yml
+- powershell: |
+   Get-ChildItem Env:
+   dotnet --info
+  displayName: 'Env + dotnet info'
+
+- task: PowerShell@2
+  displayName: 'dotnet restore'
+  inputs:
+    targetType: filePath
+    filePath: 'ci-cd/Powershell/restore.ps1'
+    workingDirectory: ${{parameters.srcFolder}}
+
+- task: PowerShell@2
+  displayName: 'dotnet build'
+  inputs:
+    targetType: filePath
+    filePath: 'ci-cd/Powershell/build.ps1'
+    workingDirectory: ${{parameters.srcFolder}}
+
+- powershell: |
+   # You can write your powershell scripts inline here. 
+   # You can also pass predefined and custom variables to this scripts using arguments
+   
+   ForEach ($path in (Get-Childitem **/**.csproj -Recurse)) {cd $path.Directory; dotnet test}
+  workingDirectory: ${{parameters.testFolder}}
+  displayName: 'run tests'
+
+- task: PowerShell@2
+  displayName: pack
+  inputs:
+    targetType: filePath
+    filePath: 'ci-cd/Powershell/pack.ps1'
+    workingDirectory: ${{parameters.srcFolder}}
